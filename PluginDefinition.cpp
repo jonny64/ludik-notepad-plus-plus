@@ -17,6 +17,7 @@
 
 #include "PluginDefinition.h"
 #include "menuCmdID.h"
+enum FOLDER_TYPE {MODEL, CONTENT, PRESENTATION};  
 
 //
 // The plugin data that Notepad++ needs
@@ -47,6 +48,7 @@ void pluginCleanUp()
 // You should fill your plugins commands here
 void commandMenuInit()
 {
+	static ShortcutKey modelKey = {false, false, false, VK_F6};
 
     //--------------------------------------------//
     //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
@@ -58,13 +60,13 @@ void commandMenuInit()
     //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
     //            bool check0nInit                // optional. Make this menu item be checked visually
     //            );
-    setCommand(0, TEXT("Switch to Model view"), hello, NULL, false);
-	setCommand(1, TEXT("get_item"), hello, NULL, false);
-	setCommand(2, TEXT("select"), hello, NULL, false);
-	setCommand(3, TEXT("draw_item"), hello, NULL, false);
-	setCommand(4, TEXT("draw"), hello, NULL, false);
-	setCommand(5, TEXT("do_update"), hello, NULL, false);
-	setCommand(6, TEXT("do_delete"), hello, NULL, false);
+	setCommand(0, TEXT("Model"), toggle_model, &modelKey, false);
+	setCommand(1, TEXT("Content/get_item"), get_item, NULL, false);
+	setCommand(2, TEXT("Content/select"), hello, NULL, false);
+	setCommand(3, TEXT("Presentation/draw_item"), hello, NULL, false);
+	setCommand(4, TEXT("Presentation/draw"), hello, NULL, false);
+	setCommand(5, TEXT("Content/do_update"), hello, NULL, false);
+	setCommand(6, TEXT("Content/do_delete"), hello, NULL, false);
 
 	setCommand(7, TEXT("Hello Notepad++"), hello, NULL, false);
     setCommand(8, TEXT("Hello (with dialog)"), helloDlg, NULL, false);
@@ -117,6 +119,93 @@ void hello()
     // Say hello now :
     // Scintilla control has no Unicode mode, so we use (char *) here
     ::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
+}
+
+FOLDER_TYPE get_current_folder()
+{
+	
+	wchar_t currentDir[MAX_PATH] = {0};
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)&currentDir);
+	
+	if (NULL != wcsstr(currentDir, L"Presentation"))
+	{
+		return PRESENTATION;
+	}
+
+	if (NULL != wcsstr(currentDir, L"Model"))
+	{
+		return MODEL;
+	}
+
+	if (NULL != wcsstr(currentDir, L"Content"))
+	{
+		return CONTENT;
+	}
+
+
+	return CONTENT;
+}
+
+
+void switch_to(const wchar_t *uplevel_folder_name)
+{
+	// get active filename and its directory
+	wchar_t currentDir[MAX_PATH] = {0};
+	wchar_t filename[MAX_PATH] = {0};
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)&currentDir);
+	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)&filename);
+	
+	if (0 == wcslen(currentDir)) 
+	{
+		return;
+	}
+
+	// switch to directory
+	int position = wcslen(currentDir);
+	while (position > 0 && (currentDir[position] != L'\\'))
+	{
+		position--;
+	}
+
+	wchar_t fileToOpen[MAX_PATH] = {0};
+	wcscpy(fileToOpen, currentDir);
+	wcscpy(fileToOpen + position + 1, uplevel_folder_name);
+	wcscat(fileToOpen, L"\\");
+	wcscat(fileToOpen, filename);
+	
+	::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)&fileToOpen);
+}
+
+void switch_to(FOLDER_TYPE uplevel_folder)
+{
+	switch(uplevel_folder)
+	{
+	case MODEL:
+		switch_to(L"Model");
+		break;
+	case CONTENT:
+		switch_to(L"Content");
+		break;
+	case PRESENTATION:
+		switch_to(L"Presentation");
+		break;
+	}
+}
+void toggle_model()
+{
+	static FOLDER_TYPE prevFolder;
+	if (MODEL == get_current_folder ())
+	{
+		switch_to(prevFolder);
+		return;
+	}
+
+	prevFolder = get_current_folder ();
+	switch_to(L"Model");
+}
+
+void get_item()
+{	
 }
 
 void helloDlg()

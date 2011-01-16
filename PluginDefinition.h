@@ -72,5 +72,7 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 //
 void hello();
 void helloDlg();
+void toggle_model();
+void get_item();
 
 #endif //PLUGINDEFINITION_H
