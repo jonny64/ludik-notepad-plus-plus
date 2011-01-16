@@ -28,7 +28,7 @@
 //-------------------------------------//
 // Here define your plugin name
 //
-const TCHAR NPP_PLUGIN_NAME[] = TEXT("Eludia helper");
+const TCHAR NPP_PLUGIN_NAME[] = TEXT("nppludi");
 
 //-----------------------------------------------//
 //-- STEP 2. DEFINE YOUR PLUGIN COMMAND NUMBER --//
@@ -71,8 +71,8 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 // Your plugin command functions
 //
 void hello();
-void helloDlg();
-void toggle_model();
-void get_item();
+void toggleModel();
+void getItem();
+void drawItem();
 
 #endif //PLUGINDEFINITION_H

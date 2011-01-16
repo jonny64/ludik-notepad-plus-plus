@@ -48,7 +48,17 @@ void pluginCleanUp()
 // You should fill your plugins commands here
 void commandMenuInit()
 {
-	static ShortcutKey modelKey = {false, false, false, VK_F6};
+	static ShortcutKey F6 = {false, false, false, VK_F6};
+	
+	static ShortcutKey ALT_G = {false, true, false, 0x47};
+	static ShortcutKey ALT_M = {false, true, false, 0x4D};
+	
+	static ShortcutKey ALT_S = {false, true, false, 0x53};
+	static ShortcutKey ALT_W = {false, true, false, 0x57};
+
+	static ShortcutKey ALT_U = {false, true, false, 0x55};
+	static ShortcutKey ALT_D = {false, true, false, 0x44};
+
 
     //--------------------------------------------//
     //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
@@ -60,16 +70,15 @@ void commandMenuInit()
     //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
     //            bool check0nInit                // optional. Make this menu item be checked visually
     //            );
-	setCommand(0, TEXT("Model"), toggle_model, &modelKey, false);
-	setCommand(1, TEXT("Content/get_item"), get_item, NULL, false);
+	setCommand(0, TEXT("Model"), toggleModel, &F6, false);
+	setCommand(1, TEXT("Content/get_item"), getItem, &ALT_G, false);
 	setCommand(2, TEXT("Content/select"), hello, NULL, false);
-	setCommand(3, TEXT("Presentation/draw_item"), hello, NULL, false);
+	setCommand(3, TEXT("Presentation/draw_item"), drawItem, &ALT_M, false);
 	setCommand(4, TEXT("Presentation/draw"), hello, NULL, false);
 	setCommand(5, TEXT("Content/do_update"), hello, NULL, false);
 	setCommand(6, TEXT("Content/do_delete"), hello, NULL, false);
 
 	setCommand(7, TEXT("Hello Notepad++"), hello, NULL, false);
-    setCommand(8, TEXT("Hello (with dialog)"), helloDlg, NULL, false);
 
 }
 
@@ -121,7 +130,7 @@ void hello()
     ::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
 }
 
-FOLDER_TYPE get_current_folder()
+FOLDER_TYPE getCurrentFolder()
 {
 	
 	wchar_t currentDir[MAX_PATH] = {0};
@@ -147,7 +156,7 @@ FOLDER_TYPE get_current_folder()
 }
 
 
-void switch_to(const wchar_t *uplevel_folder_name)
+void switchTo(const wchar_t *uplevel_folder_name)
 {
 	// get active filename and its directory
 	wchar_t currentDir[MAX_PATH] = {0};
@@ -176,39 +185,40 @@ void switch_to(const wchar_t *uplevel_folder_name)
 	::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)&fileToOpen);
 }
 
-void switch_to(FOLDER_TYPE uplevel_folder)
+void switchTo(FOLDER_TYPE uplevel_folder)
 {
 	switch(uplevel_folder)
 	{
 	case MODEL:
-		switch_to(L"Model");
+		switchTo(L"Model");
 		break;
 	case CONTENT:
-		switch_to(L"Content");
+		switchTo(L"Content");
 		break;
 	case PRESENTATION:
-		switch_to(L"Presentation");
+		switchTo(L"Presentation");
 		break;
 	}
 }
-void toggle_model()
+void toggleModel()
 {
 	static FOLDER_TYPE prevFolder;
-	if (MODEL == get_current_folder ())
+	if (MODEL == getCurrentFolder ())
 	{
-		switch_to(prevFolder);
+		switchTo(prevFolder);
 		return;
 	}
 
-	prevFolder = get_current_folder ();
-	switch_to(L"Model");
+	prevFolder = getCurrentFolder ();
+	switchTo(MODEL);
 }
 
-void get_item()
+void getItem()
 {	
+	switchTo(CONTENT);
 }
 
-void helloDlg()
-{
-    ::MessageBox(NULL, TEXT("Hello, Notepad++!"), TEXT("Notepad++ Plugin Template"), MB_OK);
+void drawItem()
+{	
+	switchTo(PRESENTATION);
 }
