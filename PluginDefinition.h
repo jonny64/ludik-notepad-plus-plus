@@ -67,6 +67,8 @@ void commandMenuCleanUp();
 bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey *sk = NULL, bool check0nInit = false);
 
 
+int searchScintilla(const wchar_t* substr);
+UINT scintillaMsg(UINT message, WPARAM wParam = 0, LPARAM lParam = 0);
 //
 // Your plugin command functions
 //

@@ -60,16 +60,16 @@ void commandMenuInit()
 	static ShortcutKey ALT_D = {false, true, false, 0x44};
 
 
-    //--------------------------------------------//
-    //-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
-    //--------------------------------------------//
-    // with function :
-    // setCommand(int index,                      // zero based number to indicate the order of command
-    //            TCHAR *commandName,             // the command name that you want to see in plugin menu
-    //            PFUNCPLUGINCMD functionPointer, // the symbol of function (function pointer) associated with this command. The body should be defined below. See Step 4.
-    //            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
-    //            bool check0nInit                // optional. Make this menu item be checked visually
-    //            );
+	//--------------------------------------------//
+	//-- STEP 3. CUSTOMIZE YOUR PLUGIN COMMANDS --//
+	//--------------------------------------------//
+	// with function :
+	// setCommand(int index,                      // zero based number to indicate the order of command
+	//            TCHAR *commandName,             // the command name that you want to see in plugin menu
+	//            PFUNCPLUGINCMD functionPointer, // the symbol of function (function pointer) associated with this command. The body should be defined below. See Step 4.
+	//            ShortcutKey *shortcut,          // optional. Define a shortcut to trigger this command
+	//            bool check0nInit                // optional. Make this menu item be checked visually
+	//            );
 	setCommand(0, TEXT("Model"), toggleModel, &F6, false);
 	setCommand(1, TEXT("Content/get_item"), getItem, &ALT_G, false);
 	setCommand(2, TEXT("Content/select"), hello, NULL, false);
@@ -96,18 +96,57 @@ void commandMenuCleanUp()
 //
 bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey *sk, bool check0nInit) 
 {
-    if (index >= nbFunc)
-        return false;
+	if (index >= nbFunc)
+	return false;
 
-    if (!pFunc)
-        return false;
+	if (!pFunc)
+	return false;
 
-    lstrcpy(funcItem[index]._itemName, cmdName);
-    funcItem[index]._pFunc = pFunc;
-    funcItem[index]._init2Check = check0nInit;
-    funcItem[index]._pShKey = sk;
+	lstrcpy(funcItem[index]._itemName, cmdName);
+	funcItem[index]._pFunc = pFunc;
+	funcItem[index]._init2Check = check0nInit;
+	funcItem[index]._pShKey = sk;
 
-    return true;
+	return true;
+}
+
+HWND getCurrentScintilla()
+{
+	int which = -1;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+	if (which == -1)
+	return NULL;
+	if (which == 0)
+	{
+		return nppData._scintillaMainHandle;
+	} else
+	{
+		return nppData._scintillaSecondHandle;
+	}
+	return nppData._scintillaMainHandle;
+}
+
+int searchScintilla(const wchar_t* substr)
+{
+	// Scintilla still requires multibyte strings
+	char short_substr[MAX_PATH] = {0};
+	wcstombs(short_substr, substr, MAX_PATH);
+
+	int searchFlags = SCFIND_REGEXP | SCFIND_POSIX;
+	int documentEnd = scintillaMsg(SCI_GETLENGTH);
+	
+	scintillaMsg(SCI_SETTARGETSTART, 0);
+	scintillaMsg(SCI_SETTARGETEND, documentEnd);
+	scintillaMsg(SCI_SETSEARCHFLAGS, searchFlags);
+	int posFind = scintillaMsg(SCI_SEARCHINTARGET, strlen(short_substr), (LPARAM)&short_substr);
+	
+	return posFind;
+}
+
+UINT scintillaMsg(UINT message, WPARAM wParam, LPARAM lParam)
+{
+	HWND curScintilla = getCurrentScintilla();
+	return ::SendMessage(curScintilla, message, wParam, lParam);
 }
 
 //----------------------------------------------//
@@ -115,19 +154,19 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 //----------------------------------------------//
 void hello()
 {
-    // Open a new document
-    ::SendMessage(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
+	// Open a new document
+	::SendMessage(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
 
-    // Get the current scintilla
-    int which = -1;
-    ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-    if (which == -1)
-        return;
-    HWND curScintilla = (which == 0)?nppData._scintillaMainHandle:nppData._scintillaSecondHandle;
+	// Get the current scintilla
+	int which = -1;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+	if (which == -1)
+	return;
+	HWND curScintilla = (which == 0)?nppData._scintillaMainHandle:nppData._scintillaSecondHandle;
 
-    // Say hello now :
-    // Scintilla control has no Unicode mode, so we use (char *) here
-    ::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
+	// Say hello now :
+	// Scintilla control has no Unicode mode, so we use (char *) here
+	::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
 }
 
 FOLDER_TYPE getCurrentFolder()
@@ -156,7 +195,7 @@ FOLDER_TYPE getCurrentFolder()
 }
 
 
-void switchTo(const wchar_t *uplevel_folder_name)
+void switchTo(const wchar_t *libFolder)
 {
 	// get active filename and its directory
 	wchar_t currentDir[MAX_PATH] = {0};
@@ -178,16 +217,16 @@ void switchTo(const wchar_t *uplevel_folder_name)
 
 	wchar_t fileToOpen[MAX_PATH] = {0};
 	wcscpy(fileToOpen, currentDir);
-	wcscpy(fileToOpen + position + 1, uplevel_folder_name);
+	wcscpy(fileToOpen + position + 1, libFolder);
 	wcscat(fileToOpen, L"\\");
 	wcscat(fileToOpen, filename);
 	
 	::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)&fileToOpen);
 }
 
-void switchTo(FOLDER_TYPE uplevel_folder)
+void switchTo(FOLDER_TYPE libFolder)
 {
-	switch(uplevel_folder)
+	switch(libFolder)
 	{
 	case MODEL:
 		switchTo(L"Model");
@@ -200,6 +239,7 @@ void switchTo(FOLDER_TYPE uplevel_folder)
 		break;
 	}
 }
+
 void toggleModel()
 {
 	static FOLDER_TYPE prevFolder;
@@ -216,6 +256,12 @@ void toggleModel()
 void getItem()
 {	
 	switchTo(CONTENT);
+	
+	int posFind = searchScintilla(L"sub get_item");
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+	const int LINES_FROM_TOP = 9;
+	scintillaMsg(SCI_SETYCARETPOLICY, CARET_SLOP | CARET_STRICT, LINES_FROM_TOP);
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
 }
 
 void drawItem()
