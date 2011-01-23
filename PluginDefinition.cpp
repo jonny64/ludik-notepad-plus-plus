@@ -58,6 +58,7 @@ void commandMenuInit()
 
 	static ShortcutKey ALT_U = {false, true, false, 0x55};
 	static ShortcutKey ALT_D = {false, true, false, 0x44};
+	static ShortcutKey ALT_C = {false, true, false, 0x43};
 
 
 	//--------------------------------------------//
@@ -71,23 +72,23 @@ void commandMenuInit()
 	//            bool check0nInit                // optional. Make this menu item be checked visually
 	//            );
 	setCommand(0, TEXT("Model"), toggleModel, &F6, false);
-	setCommand(1, TEXT("Content/get_item"), getItem, &ALT_G, false);
-	setCommand(2, TEXT("Content/select"), hello, NULL, false);
+	setCommand(2, TEXT("Content/get_item"), getItem, &ALT_G, false);
 	setCommand(3, TEXT("Presentation/draw_item"), drawItem, &ALT_M, false);
-	setCommand(4, TEXT("Presentation/draw"), hello, NULL, false);
-	setCommand(5, TEXT("Content/do_update"), hello, NULL, false);
-	setCommand(6, TEXT("Content/do_delete"), hello, NULL, false);
-
-	setCommand(7, TEXT("Hello Notepad++"), hello, NULL, false);
-
+	setCommand(5, TEXT("Presentation/select"), select, &ALT_S, false);
+	setCommand(6, TEXT("Presentation/draw"), draw, &ALT_W, false);
+	setCommand(8, TEXT("Content/do_update"), doUpdate, &ALT_U, false);
+	setCommand(9, TEXT("Content/do_delete"), doDelete, &ALT_D, false);
+	setCommand(10, TEXT("Content/do_create"), doCreate, &ALT_C, false);
+	
+	const int LINES_FROM_TOP = 9;
+	scintillaMsg(SCI_SETYCARETPOLICY, CARET_SLOP | CARET_STRICT, LINES_FROM_TOP);
 }
 
 //
-// Here you can do the clean up (especially for the shortcut)
+// clean up
 //
 void commandMenuCleanUp()
 {
-	// Don't forget to deallocate your shortcut here
 }
 
 
@@ -152,22 +153,6 @@ UINT scintillaMsg(UINT message, WPARAM wParam, LPARAM lParam)
 //----------------------------------------------//
 //-- STEP 4. DEFINE YOUR ASSOCIATED FUNCTIONS --//
 //----------------------------------------------//
-void hello()
-{
-	// Open a new document
-	::SendMessage(nppData._nppHandle, NPPM_MENUCOMMAND, 0, IDM_FILE_NEW);
-
-	// Get the current scintilla
-	int which = -1;
-	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
-	if (which == -1)
-	return;
-	HWND curScintilla = (which == 0)?nppData._scintillaMainHandle:nppData._scintillaSecondHandle;
-
-	// Say hello now :
-	// Scintilla control has no Unicode mode, so we use (char *) here
-	::SendMessage(curScintilla, SCI_SETTEXT, 0, (LPARAM)"Hello, Notepad++!");
-}
 
 FOLDER_TYPE getCurrentFolder()
 {
@@ -257,14 +242,62 @@ void getItem()
 {	
 	switchTo(CONTENT);
 	
-	int posFind = searchScintilla(L"sub get_item");
+	int posFind = searchScintilla(L"sub get_item_of");
 	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	const int LINES_FROM_TOP = 9;
-	scintillaMsg(SCI_SETYCARETPOLICY, CARET_SLOP | CARET_STRICT, LINES_FROM_TOP);
 	scintillaMsg(SCI_GOTOLINE, subLine + 2);
 }
 
 void drawItem()
 {	
 	switchTo(PRESENTATION);
+
+	int posFind = searchScintilla(L"sub draw_item_of_");
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+}
+
+void select()
+{
+	switchTo(CONTENT);
+
+	int posFind = searchScintilla(L"sub select_");
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+}
+
+void draw()
+{
+	switchTo(PRESENTATION);
+
+	int posFind = searchScintilla(L"sub draw_[^i]");
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+}
+
+void doUpdate()
+{
+	switchTo(CONTENT);
+
+	int posFind = searchScintilla(L"sub do_update_");
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+}
+
+void doDelete()
+{
+	switchTo(CONTENT);
+
+	int posFind = searchScintilla(L"sub do_delete_");
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+
+}
+
+void doCreate()
+{
+	switchTo(CONTENT);
+
+	int posFind = searchScintilla(L"sub do_create_");
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
 }

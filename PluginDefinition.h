@@ -36,7 +36,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT("nppludi");
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 9;
+const int nbFunc = 11;
 
 
 //
@@ -72,9 +72,13 @@ UINT scintillaMsg(UINT message, WPARAM wParam = 0, LPARAM lParam = 0);
 //
 // Your plugin command functions
 //
-void hello();
 void toggleModel();
 void getItem();
 void drawItem();
+void select();
+void draw();
+void doUpdate();
+void doDelete();
+void doCreate();
 
 #endif //PLUGINDEFINITION_H
