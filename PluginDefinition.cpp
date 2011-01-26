@@ -79,9 +79,6 @@ void commandMenuInit()
 	setCommand(8, TEXT("Content/do_update"), doUpdate, &ALT_U, false);
 	setCommand(9, TEXT("Content/do_delete"), doDelete, &ALT_D, false);
 	setCommand(10, TEXT("Content/do_create"), doCreate, &ALT_C, false);
-	
-	const int LINES_FROM_TOP = 9;
-	scintillaMsg(SCI_SETYCARETPOLICY, CARET_SLOP | CARET_STRICT, LINES_FROM_TOP);
 }
 
 //
@@ -238,66 +235,55 @@ void toggleModel()
 	switchTo(MODEL);
 }
 
+void scrollToSub(const wchar_t* subname)
+{
+	int posFind = searchScintilla(subname);
+	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
+
+	scintillaMsg(SCI_SETYCARETPOLICY, CARET_SLOP, 2);	
+	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+	scintillaMsg(SCI_SETYCARETPOLICY, 0);
+}
+
+
 void getItem()
 {	
-	switchTo(CONTENT);
-	
-	int posFind = searchScintilla(L"sub get_item_of");
-	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+	switchTo(CONTENT);	
+	scrollToSub(L"sub get_item_of");
 }
 
 void drawItem()
 {	
 	switchTo(PRESENTATION);
-
-	int posFind = searchScintilla(L"sub draw_item_of_");
-	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+	scrollToSub(L"sub draw_item_of_");
 }
 
 void select()
 {
 	switchTo(CONTENT);
-
-	int posFind = searchScintilla(L"sub select_");
-	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+	scrollToSub(L"sub select_");
 }
 
 void draw()
 {
 	switchTo(PRESENTATION);
-
-	int posFind = searchScintilla(L"sub draw_[^i]");
-	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+	scrollToSub(L"sub draw_[^i]");
 }
 
 void doUpdate()
 {
 	switchTo(CONTENT);
-
-	int posFind = searchScintilla(L"sub do_update_");
-	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+	scrollToSub(L"sub do_update_");
 }
 
 void doDelete()
 {
 	switchTo(CONTENT);
-
-	int posFind = searchScintilla(L"sub do_delete_");
-	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	scintillaMsg(SCI_GOTOLINE, subLine + 2);
-
+	scrollToSub(L"sub do_delete_");
 }
 
 void doCreate()
 {
 	switchTo(CONTENT);
-
-	int posFind = searchScintilla(L"sub do_create_");
-	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
-	scintillaMsg(SCI_GOTOLINE, subLine + 2);
+	scrollToSub(L"sub do_create_");
 }
