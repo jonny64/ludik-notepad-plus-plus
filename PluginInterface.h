@@ -20,7 +20,7 @@
 
 #include <windows.h>
 #include "Scintilla.h"
-#include "Notepad_plus_msgs.h"
+#include "NppMsgs.h"
 
 const int nbChar = 64;
 
