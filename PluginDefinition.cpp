@@ -131,8 +131,12 @@ HWND getCurrentScintilla()
 int searchScintilla(const wstring& substr)
 {
 	// Scintilla still requires multibyte strings
-	char short_substr[MAX_PATH] = {0};
-	wcstombs(short_substr, substr.c_str(), MAX_PATH);
+	char multibyte_substr[MAX_PATH] = {0};
+	size_t numCharConverted = 0;
+	if (0 != wcstombs_s(&numCharConverted, multibyte_substr, substr.c_str(), MAX_PATH))
+	{
+		return 0;
+	}
 
 	int searchFlags = SCFIND_REGEXP | SCFIND_POSIX;
 	int documentEnd = scintillaMsg(SCI_GETLENGTH);
@@ -140,7 +144,7 @@ int searchScintilla(const wstring& substr)
 	scintillaMsg(SCI_SETTARGETSTART, 0);
 	scintillaMsg(SCI_SETTARGETEND, documentEnd);
 	scintillaMsg(SCI_SETSEARCHFLAGS, searchFlags);
-	int posFind = scintillaMsg(SCI_SEARCHINTARGET, strlen(short_substr), (LPARAM)&short_substr);
+	int posFind = scintillaMsg(SCI_SEARCHINTARGET, strlen(multibyte_substr), (LPARAM)&multibyte_substr);
 	
 	return posFind;
 }
@@ -181,6 +185,16 @@ FOLDER_TYPE getCurrentFolder()
 	return CONTENT;
 }
 
+wstring getCurrentType()
+{
+	wchar_t filenameBuf[MAX_PATH] = {0};
+	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)&filenameBuf);
+	wstring filename = filenameBuf;
+
+	wstring typeName = filename.substr(0, filename.find(L"."));
+
+	return typeName;
+}
 
 void switchTo(const wstring& libFolder)
 {
@@ -247,41 +261,41 @@ void scrollToSub(const wstring& subname)
 void getItem()
 {	
 	switchTo(CONTENT);	
-	scrollToSub(L"sub get_item_of");
+	scrollToSub(L"sub get_item_of" + getCurrentType());
 }
 
 void drawItem()
 {	
 	switchTo(PRESENTATION);
-	scrollToSub(L"sub draw_item_of_");
+	scrollToSub(L"sub draw_item_of_" + getCurrentType());
 }
 
 void select()
 {
 	switchTo(CONTENT);
-	scrollToSub(L"sub select_");
+	scrollToSub(L"sub select_" + getCurrentType());
 }
 
 void draw()
 {
 	switchTo(PRESENTATION);
-	scrollToSub(L"sub draw_[^i]");
+	scrollToSub(L"sub draw_" + getCurrentType());
 }
 
 void doUpdate()
 {
 	switchTo(CONTENT);
-	scrollToSub(L"sub do_update_");
+	scrollToSub(L"sub do_update_" + getCurrentType());
 }
 
 void doDelete()
 {
 	switchTo(CONTENT);
-	scrollToSub(L"sub do_delete_");
+	scrollToSub(L"sub do_delete_" + getCurrentType());
 }
 
 void doCreate()
 {
 	switchTo(CONTENT);
-	scrollToSub(L"sub do_create_");
+	scrollToSub(L"sub do_create_" + getCurrentType());
 }
