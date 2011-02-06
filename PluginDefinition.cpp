@@ -261,7 +261,7 @@ void scrollToSub(const wstring& subname)
 void getItem()
 {	
 	switchTo(CONTENT);	
-	scrollToSub(L"sub get_item_of" + getCurrentType());
+	scrollToSub(L"sub get_item_of_" + getCurrentType());
 }
 
 void drawItem()
