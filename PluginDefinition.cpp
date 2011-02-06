@@ -17,7 +17,11 @@
 
 #include "PluginDefinition.h"
 #include "menuCmdID.h"
+#include <string>
+
 enum FOLDER_TYPE {MODEL, CONTENT, PRESENTATION};  
+
+using namespace std;
 
 //
 // The plugin data that Notepad++ needs
@@ -124,11 +128,11 @@ HWND getCurrentScintilla()
 	return nppData._scintillaMainHandle;
 }
 
-int searchScintilla(const wchar_t* substr)
+int searchScintilla(const wstring& substr)
 {
 	// Scintilla still requires multibyte strings
 	char short_substr[MAX_PATH] = {0};
-	wcstombs(short_substr, substr, MAX_PATH);
+	wcstombs(short_substr, substr.c_str(), MAX_PATH);
 
 	int searchFlags = SCFIND_REGEXP | SCFIND_POSIX;
 	int documentEnd = scintillaMsg(SCI_GETLENGTH);
@@ -154,20 +158,21 @@ UINT scintillaMsg(UINT message, WPARAM wParam, LPARAM lParam)
 FOLDER_TYPE getCurrentFolder()
 {
 	
-	wchar_t currentDir[MAX_PATH] = {0};
-	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)&currentDir);
-	
-	if (NULL != wcsstr(currentDir, L"Presentation"))
+	wchar_t buf[MAX_PATH] = {0};
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)&buf);
+	wstring currentDir = buf;
+
+	if (std::string::npos != currentDir.find(L"Presentation"))
 	{
 		return PRESENTATION;
 	}
 
-	if (NULL != wcsstr(currentDir, L"Model"))
+	if (std::string::npos != currentDir.find(L"Model"))
 	{
 		return MODEL;
 	}
 
-	if (NULL != wcsstr(currentDir, L"Content"))
+	if (std::string::npos != currentDir.find(L"Content"))
 	{
 		return CONTENT;
 	}
@@ -177,33 +182,26 @@ FOLDER_TYPE getCurrentFolder()
 }
 
 
-void switchTo(const wchar_t *libFolder)
+void switchTo(const wstring& libFolder)
 {
 	// get active filename and its directory
-	wchar_t currentDir[MAX_PATH] = {0};
-	wchar_t filename[MAX_PATH] = {0};
-	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)&currentDir);
-	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)&filename);
+	wchar_t currentDirBuf[MAX_PATH] = {0};
+	wchar_t filenameBuf[MAX_PATH] = {0};
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDIRECTORY, MAX_PATH, (LPARAM)&currentDirBuf);
+	::SendMessage(nppData._nppHandle, NPPM_GETFILENAME, MAX_PATH, (LPARAM)&filenameBuf);
 	
-	if (0 == wcslen(currentDir)) 
+	wstring currentDir = currentDirBuf;
+	wstring filename = filenameBuf;
+
+	if (currentDir.empty()) 
 	{
 		return;
 	}
 
 	// switch to directory
-	int position = wcslen(currentDir);
-	while (position > 0 && (currentDir[position] != L'\\'))
-	{
-		position--;
-	}
-
-	wchar_t fileToOpen[MAX_PATH] = {0};
-	wcscpy(fileToOpen, currentDir);
-	wcscpy(fileToOpen + position + 1, libFolder);
-	wcscat(fileToOpen, L"\\");
-	wcscat(fileToOpen, filename);
-	
-	::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)&fileToOpen);
+	int libFolderPosition = currentDir.rfind(L"\\");
+	wstring fileToOpen = wstring(currentDir, 0, libFolderPosition) + L"\\" + libFolder + L"\\" + filename;
+	::SendMessage(nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)(fileToOpen.c_str()));
 }
 
 void switchTo(FOLDER_TYPE libFolder)
@@ -235,7 +233,7 @@ void toggleModel()
 	switchTo(MODEL);
 }
 
-void scrollToSub(const wchar_t* subname)
+void scrollToSub(const wstring& subname)
 {
 	int posFind = searchScintilla(subname);
 	int subLine = scintillaMsg(SCI_LINEFROMPOSITION, posFind);
